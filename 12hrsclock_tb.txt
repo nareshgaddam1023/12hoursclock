@@ -1,8 +1,6 @@
-// Code your testbench here
-// or browse Examples
 module tb;
   wire [5:0] sec,min;
-  reg mode=0,set,inc,dec;
+  reg mode=0,set=0,inc=0,dec=0;
   wire [3:0] hrs12;
   wire am_pm;
   reg clk=0,rst;
@@ -13,13 +11,14 @@ module tb;
 
   initial begin
     rst = 1;@(posedge clk) rst = 0;
-    mode=1; // mode button pressed 1st time 
+    mode=1; // mode button pressed
     // hours setting 
     inc=1; 
     dec=0;  // increment hours 12 to 01
     @(posedge clk)
-    mode=0; // 
+    mode=0; // mode button relesed
     inc=0;
+    dec=1; // decrement hours 01 to 12
     @(posedge clk)
     set=1;
   end
@@ -34,11 +33,12 @@ module tb;
   end
 
   initial begin
-    repeat(3000) @(posedge clk);
+    repeat(30) @(posedge clk);
     $finish;
   end
  
   initial begin
     $dumpfile("dump.vcd"); $dumpvars;
   end
+  
 endmodule

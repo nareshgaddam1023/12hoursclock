@@ -4,8 +4,7 @@ module digitalclock12h(input clk,rst,input inc,dec,mode,set, output [5:0] sec,mi
   reg [3:0] hrs_r12,hrs_nxt12;
   reg am_pm_r,am_pm_nxt;
   reg [2:0] state;
-  reg run;
-  reg mode_prev;   
+  reg run;  
   
 
  assign sec= sec_r;
@@ -24,6 +23,10 @@ module digitalclock12h(input clk,rst,input inc,dec,mode,set, output [5:0] sec,mi
         else
           state <= state + 1;
         end
+      
+      else if (!mode) begin
+        state<=state;
+      end
     end
   
   // state=1 ---> hours should change
@@ -62,7 +65,7 @@ module digitalclock12h(input clk,rst,input inc,dec,mode,set, output [5:0] sec,mi
                 else
                   sec_nxt = sec_r - 1;
                 end
-              else if (dec && inc) begin
+              else if (dec && inc || !dec && !inc) begin
                 sec_nxt = sec_r;
               end
             end
@@ -92,7 +95,7 @@ module digitalclock12h(input clk,rst,input inc,dec,mode,set, output [5:0] sec,mi
                 else
                   min_nxt = min_r - 1;
               end
-              else if (dec && inc) begin
+              else if (dec && inc || !dec && !inc) begin
                 min_nxt = min_r;
               end
             end
@@ -127,7 +130,7 @@ module digitalclock12h(input clk,rst,input inc,dec,mode,set, output [5:0] sec,mi
                 else
                   hrs_nxt12 = hrs_r12 - 1;
                 end
-              else if (dec && inc) begin
+              else if (dec && inc || !dec && !inc) begin
                 hrs_nxt12 = hrs_r12;
             end
           end
@@ -174,7 +177,6 @@ module digitalclock12h(input clk,rst,input inc,dec,mode,set, output [5:0] sec,mi
             min_r<=0;
             hrs_r12<=12;
             am_pm_r<=0;
-            mode_prev<=0;
           end
         
         else
@@ -183,10 +185,7 @@ module digitalclock12h(input clk,rst,input inc,dec,mode,set, output [5:0] sec,mi
             min_r<= min_nxt;
             hrs_r12<= hrs_nxt12;
             am_pm_r<= am_pm_nxt;
-            mode_prev <= mode;
           end
       end
   
 endmodule
-
-//test commit
