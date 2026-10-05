@@ -1,0 +1,190 @@
+module digitalclock12h(input clk,rst,input inc,dec,mode,set, output [5:0] sec,min,[3:0] hrs12, output am_pm);
+  
+  reg [5:0] sec_r,sec_nxt,min_r,min_nxt;
+  reg [3:0] hrs_r12,hrs_nxt12;
+  reg am_pm_r,am_pm_nxt;
+  reg [2:0] state;
+  reg run;
+  reg mode_prev;   
+  
+
+ assign sec= sec_r;
+ assign min= min_r;
+ assign hrs12=hrs_r12;
+ assign am_pm=am_pm_r;
+  
+  always@(posedge clk,rst)
+    begin
+      if (rst)
+        state<=0;
+    
+      else if (mode) begin
+        if (state == 4)
+          state <= 0;
+        else
+          state <= state + 1;
+        end
+    end
+  
+  // state=1 ---> hours should change
+  // state=2 ---> minutes should change
+  // state=3 ---> seconds should change
+  // state=4 ---> AM_PM should change
+  // state=0 ---> reset
+  
+  always@(posedge clk,rst) begin
+    if (rst)
+      run<=0;
+    else if (set)
+      run<=1;
+  end
+  
+  always@(*)
+        begin
+          sec_nxt   = sec_r;
+          min_nxt   = min_r;
+          hrs_nxt12 = hrs_r12;
+          am_pm_nxt = am_pm_r;
+          
+          // SECONDS
+          begin 
+            // setting 
+            if (state==3 && !run)begin
+              if (inc && !dec) begin
+                if (sec_r == 59)
+                  sec_nxt = 0;
+                else
+                  sec_nxt = sec_r + 1;
+              end
+              else if (dec && !inc) begin
+                if (sec_r == 0)
+                  sec_nxt = 59;
+                else
+                  sec_nxt = sec_r - 1;
+                end
+              else if (dec && inc) begin
+                sec_nxt = sec_r;
+              end
+            end
+            
+            //normal run
+            else if (run) begin
+              if (sec_r==59)
+                sec_nxt=0;
+              else
+                sec_nxt=sec_r+1;
+            end
+          end
+          
+          // MINUTES
+          begin
+            //setting
+            if (state==2 && !run) begin
+              if (inc && !dec) begin
+                if (min_r == 59)
+                  min_nxt = 0;
+                else
+                  min_nxt = min_r + 1;
+              end
+              else if (dec && !inc) begin
+                if (min_r == 0)
+                  min_nxt = 59;
+                else
+                  min_nxt = min_r - 1;
+              end
+              else if (dec && inc) begin
+                min_nxt = min_r;
+              end
+            end
+            
+            // normal run
+            else if (run) begin
+              if (min_r==59 && sec_r==59)
+                min_nxt=0;
+              else
+                begin
+                  if (sec_r==59)
+                    min_nxt=min_r+1;
+                  else
+                    min_nxt=min_r;
+                end
+            end
+          end
+          
+          // HOURS
+          begin
+            // setting
+            if (state==1 && !run) begin
+              if (inc && !dec) begin
+                if (hrs_r12 == 12)
+                  hrs_nxt12 = 1;
+                else
+                  hrs_nxt12 = hrs_r12 + 1;
+              end
+              else if (dec && !inc) begin
+                if (hrs_r12 == 1)
+                  hrs_nxt12 = 12;
+                else
+                  hrs_nxt12 = hrs_r12 - 1;
+                end
+              else if (dec && inc) begin
+                hrs_nxt12 = hrs_r12;
+            end
+          end
+            
+            //normal run
+            else if(run) begin
+              if (hrs_r12==12 && min_r==59 && sec_r==59)
+                hrs_nxt12=1;
+              else
+                begin
+                  if (min_r==59 && sec_r==59)
+                    hrs_nxt12= hrs_r12+1;
+                  else
+                    hrs_nxt12=hrs_r12;
+                  end
+            end
+          end
+          
+          // AM_PM 
+          begin
+            //setting
+            if (state==4 && !run) begin
+              if (inc||dec)
+                am_pm_nxt=~am_pm_r;
+            end
+            
+            //normal run
+            else if (run)begin
+              if (hrs_r12==11 && min_r==59 && sec_r==59)
+                am_pm_nxt=~am_pm_r;
+              else
+                am_pm_nxt=am_pm_r;
+            end
+          end
+        end
+          
+  // sequential block
+  
+  always @(posedge clk or posedge rst)
+      begin
+        if (rst)
+          begin
+            sec_r<=0;
+            min_r<=0;
+            hrs_r12<=12;
+            am_pm_r<=0;
+            mode_prev<=0;
+          end
+        
+        else
+          begin
+            sec_r<= sec_nxt;
+            min_r<= min_nxt;
+            hrs_r12<= hrs_nxt12;
+            am_pm_r<= am_pm_nxt;
+            mode_prev <= mode;
+          end
+      end
+  
+endmodule
