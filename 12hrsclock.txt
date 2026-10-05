@@ -188,3 +188,5 @@ module digitalclock12h(input clk,rst,input inc,dec,mode,set, output [5:0] sec,mi
       end
   
 endmodule
+
+//test commit
