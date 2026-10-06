@@ -27,7 +27,7 @@ module tb;
     mode=0;
     dec=0;
     @(posedge clk)
-    set=1;
+    set=1; // start running
   end
   
   always @(posedge clk) begin
