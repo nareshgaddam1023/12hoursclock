@@ -1,3 +1,5 @@
+// Code your testbench here
+// or browse Examples
 module tb;
   wire [5:0] sec,min;
   reg mode=0,set=0,inc=0,dec=0;
@@ -19,6 +21,13 @@ module tb;
     mode=0; // mode button relesed
     inc=0;
     dec=1; // decrement hours 01 to 12
+    @(posedge clk)
+    mode=1; // mode button pressed
+    // minutes setting
+    dec=1; // decrement minutes 00 to 59
+    @(posedge clk)
+    mode=0;
+    dec=0;
     @(posedge clk)
     set=1;
   end
